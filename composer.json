@@ -1,0 +1,17 @@
+{
+    "name": "admin/nhom4",
+    "description": "Hien thi danh sach ban hang",
+    "autoload": {
+        "psr-4": {
+            "Admin\\Nhom4\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "nhom4"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

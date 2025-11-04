@@ -1,0 +1,51 @@
+<?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+/**
+ * 📧 Gửi email qua Gmail SMTP
+ * @param string $toEmail  Email người nhận
+ * @param string $subject  Tiêu đề email
+ * @param string $content  Nội dung HTML
+ * @return bool
+ */
+function guiEmail($toEmail, $subject, $content): bool {
+    $mail = new PHPMailer(true);
+
+    try {
+        // Cấu hình SMTP
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+
+        // ⚠️ Dùng App Password (không dùng mật khẩu Gmail thật)
+        $mail->Username   = 'dvkhiem-cntt17@tdu.edu.vn';
+        $mail->Password   = 'ggxa bstd nuai hpvf'; // Mã ứng dụng Gmail (App Password)
+
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        // Cấu hình tiếng Việt + HTML
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
+        $mail->isHTML(true);
+
+        // Thông tin người gửi & người nhận
+        $mail->setFrom('dvkhiem-cntt17@tdu.edu.vn', 'Hệ thống bán hàng Online');
+        $mail->addAddress($toEmail);
+
+        // Tiêu đề & nội dung
+        $mail->Subject = $subject;
+        $mail->Body    = $content;
+
+        // Gửi mail
+        $mail->send();
+        return true;
+
+    } catch (Exception $e) {
+        error_log("❌ Lỗi gửi email tới $toEmail: " . $mail->ErrorInfo);
+        return false;
+    }
+}

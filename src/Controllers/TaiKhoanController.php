@@ -1,14 +1,10 @@
 <?php
 namespace Admin\Nhom4\Controllers;
-<<<<<<< HEAD
 
-=======
->>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
 use Admin\Nhom4\Models\TaiKhoanModel;
 
 class TaiKhoanController
 {
-<<<<<<< HEAD
     private TaiKhoanModel $model;
     private string $baseUrl = "/nhom4/public/"; // Định nghĩa BASE_URL ở Controller
     private string $domain = "http://localhost"; // Thêm domain gốc để tạo link tuyệt đối
@@ -30,7 +26,6 @@ class TaiKhoanController
         if ($role === 'admin') {
             header("Location: {$adminPath}?action=dashboard");
         } else {
-            // Sửa lỗi: Nếu có redirect_url (từ hoso), dùng nó, không thì về trang chủ
             $redirectUrl = $_SESSION['redirect_url'] ?? $homePath;
             unset($_SESSION['redirect_url']);
             header("Location: {$redirectUrl}");
@@ -46,8 +41,6 @@ class TaiKhoanController
             exit;
         }
     }
-
-    // --- CÁC HÀM CHỨC NĂNG CHÍNH ---
 
     /** 🔑 Đăng nhập */
     public function dangNhap(): void
@@ -76,7 +69,6 @@ class TaiKhoanController
                     if ((int) ($user['trangthai'] ?? 0) !== 1) {
                         $error = "⚠️ Tài khoản chưa kích hoạt hoặc bị khóa!";
                     } else {
-                        // Lưu session (chỉ lưu thông tin cần thiết)
                         $_SESSION['user'] = [
                             'id' => $user['id'],
                             'email' => $user['email'],
@@ -86,120 +78,10 @@ class TaiKhoanController
                         $this->redirectByRole($_SESSION['user']['role']);
                         return;
                     }
-=======
-    private $model;
-
-    /** 🧩 Khởi tạo controller, truyền kết nối CSDL */
-    public function __construct($db)
-    {
-        $this->model = new TaiKhoanModel($db); // ✅ Sửa: bỏ named parameter
-    }
-    /** 🧭 Đăng nhập */
-    public function dangNhap(): void
-    {
-        // Nếu đã đăng nhập, chuyển hướng thẳng đến trang chủ
-        if (isset($_SESSION['user'])) {
-            header("Location: index.php?action=trangchu");
-            exit();
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'] ?? "";
-            $matkhau = $_POST['matkhau'] ?? "";
-
-            // Validate input
-            if (empty($email) || empty($matkhau)) {
-                $error = "Vui lòng nhập đầy đủ email và mật khẩu!";
-                require_once __DIR__ . '/../Views/taikhoan/dangnhap.php';
-                return;
-            }
-
-            $user = $this->model->dangNhap($email, $matkhau);
-
-            if ($user) {
-                if ($user['trangthai'] == 0) {
-                    $error = "⚠️ Vui lòng xác thực email trước khi đăng nhập!";
-                    require_once __DIR__ . '/../Views/taikhoan/dangnhap.php';
-                    return;
-                }
-
-                $_SESSION['user'] = $user;
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['hoten'] = $user['hoten'];
-                $_SESSION['role'] = $user['role'] ?? 'user';
-
-                header("Location: index.php?action=trangchu");
-                exit();
-            } else {
-                $error = "❌ Email hoặc mật khẩu không đúng!";
-                require_once __DIR__ . '/../Views/taikhoan/dangnhap.php';
-            }
-        } else {
-            // Hiển thị form đăng nhập
-            require_once __DIR__ . '/../Views/taikhoan/dangnhap.php';
-        }
-    }
-    /** 🧩 Đăng ký (gửi email xác thực) */
-    public function dangKy()
-    {
-        // Nếu đã đăng nhập, chuyển về trang chủ
-        if (isset($_SESSION['user'])) {
-            header("Location: index.php?action=trangchu");
-            exit();
-        }
-
-        $error = '';
-        $success = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'email' => trim($_POST['email'] ?? ''),
-                'matkhau' => $_POST['matkhau'] ?? '',
-                'dienthoai' => trim($_POST['dienthoai'] ?? ''),
-                'diachi' => trim($_POST['diachi'] ?? ''),
-                'ngaysinh' => $_POST['ngaysinh'] ?? null,
-                'gioitinh' => $_POST['gioitinh'] ?? null,
-                'hoten' => trim($_POST['hoten'] ?? '')
-            ];
-
-            // Validate required fields
-            if (empty($data['email']) || empty($data['matkhau']) || empty($data['hoten'])) {
-                $error = "Vui lòng điền đầy đủ thông tin bắt buộc!";
-            } elseif ($data['matkhau'] !== ($_POST['nhaplai_matkhau'] ?? '')) {
-                $error = "Mật khẩu nhập lại không khớp!";
-            } else {
-                $token = $this->model->dangKy($data);
-
-                if ($token === "duplicate") {
-                    $error = "⚠️ Email đã tồn tại, vui lòng sử dụng email khác.";
-                } elseif ($token) {
-                    // Gửi email xác thực
-                    require_once __DIR__ . '/../Views/gmail.php';
-
-                    $name = htmlspecialchars($data['hoten']);
-                    $email = htmlspecialchars($data['email']);
-                    $body = "
-                        <h2>Xin chào {$name}!</h2>
-                        <p>Cảm ơn bạn đã đăng ký tài khoản tại hệ thống của chúng tôi.</p>
-                        <p>Nhấn vào liên kết dưới đây để xác nhận tài khoản:</p>
-                        <a href='http://localhost/nhom4/public/index.php?action=verify&token={$token}'>
-                            👉 Xác nhận đăng ký
-                        </a>
-                        <br><br>
-                        <p>Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.</p>
-                    ";
-
-                    \Admin\Nhom4\Views\guiEmail($email, 'Xác nhận đăng ký tài khoản', $body);
-
-                    $success = "✅ Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.";
-                } else {
-                    $error = "❌ Đăng ký thất bại, vui lòng thử lại.";
->>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
                 }
             }
         }
 
-<<<<<<< HEAD
         require __DIR__ . '/../Views/taikhoan/dangnhap.php';
     }
 
@@ -208,22 +90,10 @@ class TaiKhoanController
     {
         session_destroy();
         header("Location: {$this->baseUrl}?action=trangchu");
-=======
-        // Truyền biến error và success ra view
-        require_once __DIR__ . '/../Views/taikhoan/dangky.php';
-    }
-
-    /** 🚪 Đăng xuất */
-    public function dangXuat()
-    {
-        session_destroy();
-        header("Location: index.php?action=trangchu");
->>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
         exit;
     }
 
     /** 👤 Hồ sơ cá nhân */
-<<<<<<< HEAD
     public function hoSo(): void
     {
         $this->checkUser();
@@ -232,89 +102,73 @@ class TaiKhoanController
     }
 
     /** ✏️ Sửa thông tin cá nhân */
-public function suaThongTin(): void
-{
-    $this->checkUser();
-    // Lấy dữ liệu user hiện tại từ Model (Cần lấy từ Model để có đủ các trường, bao gồm cả avatar)
-    $user = $this->model->layThongTin($_SESSION['user']['id']); 
-    $error = $success = '';
+    public function suaThongTin(): void
+    {
+        $this->checkUser();
+        $user = $this->model->layThongTin($_SESSION['user']['id']); 
+        $error = $success = '';
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        
-        $data = [
-             'id' => $user['id'],
-             'hoten' => trim($_POST['hoten'] ?? ''),
-             'gioitinh' => $_POST['gioitinh'] ?? '',
-             'ngaysinh' => $_POST['ngaysinh'] ?? null,
-             'dienthoai' => trim($_POST['dienthoai'] ?? ''),
-             'diachi' => trim($_POST['diachi'] ?? ''),
-             // Mặc định giữ avatar cũ nếu không có upload mới
-             'avatar' => $user['avatar'] ?? null 
-        ];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'id' => $user['id'],
+                'hoten' => trim($_POST['hoten'] ?? ''),
+                'gioitinh' => $_POST['gioitinh'] ?? '',
+                'ngaysinh' => $_POST['ngaysinh'] ?? null,
+                'dienthoai' => trim($_POST['dienthoai'] ?? ''),
+                'diachi' => trim($_POST['diachi'] ?? ''),
+                'avatar' => $user['avatar'] ?? null 
+            ];
 
-        if ($data['hoten'] === '') {
-            $error = "⚠️ Vui lòng nhập họ tên!";
-        } else {
-            // Xử lý ảnh đại diện
-            if (!empty($_FILES['avatar']['name']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-                
-                 $fileTmp = $_FILES['avatar']['tmp_name'];
-                 $fileName = time() . "_" . basename($_FILES['avatar']['name']);
-                 // Đường dẫn vật lý đến thư mục uploads
-                 $uploadDir = __DIR__ . '/../../public/uploads/'; 
-                 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            if ($data['hoten'] === '') {
+                $error = "⚠️ Vui lòng nhập họ tên!";
+            } else {
+                if (!empty($_FILES['avatar']['name']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+                    $fileTmp = $_FILES['avatar']['tmp_name'];
+                    $fileName = time() . "_" . basename($_FILES['avatar']['name']);
+                    $uploadDir = __DIR__ . '/../../public/uploads/'; 
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
-                 $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                 $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+                    $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
 
-                 if (!in_array($ext, $allowed)) {
-                     $error = "❌ Chỉ chấp nhận ảnh JPG, PNG, GIF!";
-                 } elseif ($_FILES['avatar']['size'] > 2 * 1024 * 1024) {
-                     $error = "❌ Ảnh vượt quá 2MB!";
-                 } elseif (!move_uploaded_file($fileTmp, $uploadDir . $fileName)) {
-                     $error = "❌ Lỗi khi tải ảnh lên!";
-                 } else {
-                     // *** THÀNH CÔNG: XÓA ẢNH CŨ VÀ CẬP NHẬT ĐƯỜNG DẪN MỚI ***
-                     
-                     // 1. Xóa ảnh cũ (nếu tồn tại)
-                     if ($user['avatar'] && file_exists($uploadDir . basename($user['avatar']))) {
-                         @unlink($uploadDir . basename($user['avatar']));
-                     }
-                     
-                     // 2. Lưu đường dẫn tương đối (để dùng trong thẻ <img>)
-                     $data['avatar'] = 'uploads/' . $fileName; 
-                 }
-            }
-            
-            if ($error === '') {
-                 if ($this->model->capNhat($data)) {
-                     // Lấy lại toàn bộ thông tin mới từ DB sau khi cập nhật
-                     $user_updated = $this->model->layThongTin($user['id']); 
-                     
-                     // Cập nhật lại session (rất quan trọng)
-                     $_SESSION['user'] = [
-                         'id' => $user_updated['id'],
-                         'email' => $user_updated['email'],
-                         'hoten' => $user_updated['hoten'],
-                         'role' => $user_updated['role'] ?? 'user',
-                         'avatar' => $user_updated['avatar'] ?? null // Thêm avatar vào session
-                     ];
-                     $success = "✅ Cập nhật thành công!";
-                     $user = $user_updated; // Cập nhật biến $user cho View
-                 } else {
-                     $error = "❌ Cập nhật thất bại! Vui lòng kiểm tra log hệ thống.";
-                 }
+                    if (!in_array($ext, $allowed)) {
+                        $error = "❌ Chỉ chấp nhận ảnh JPG, PNG, GIF!";
+                    } elseif ($_FILES['avatar']['size'] > 2 * 1024 * 1024) {
+                        $error = "❌ Ảnh vượt quá 2MB!";
+                    } elseif (!move_uploaded_file($fileTmp, $uploadDir . $fileName)) {
+                        $error = "❌ Lỗi khi tải ảnh lên!";
+                    } else {
+                        if ($user['avatar'] && file_exists($uploadDir . basename($user['avatar']))) {
+                            @unlink($uploadDir . basename($user['avatar']));
+                        }
+                        $data['avatar'] = 'uploads/' . $fileName; 
+                    }
+                }
+
+                if ($error === '') {
+                    if ($this->model->capNhat($data)) {
+                        $user_updated = $this->model->layThongTin($user['id']); 
+                        $_SESSION['user'] = [
+                            'id' => $user_updated['id'],
+                            'email' => $user_updated['email'],
+                            'hoten' => $user_updated['hoten'],
+                            'role' => $user_updated['role'] ?? 'user',
+                            'avatar' => $user_updated['avatar'] ?? null
+                        ];
+                        $success = "✅ Cập nhật thành công!";
+                        $user = $user_updated;
+                    } else {
+                        $error = "❌ Cập nhật thất bại! Vui lòng kiểm tra log hệ thống.";
+                    }
+                }
             }
         }
+
+        $user = $this->model->layThongTin($_SESSION['user']['id']); 
+        require __DIR__ . '/../Views/taikhoan/suathongtin.php';
     }
-    
-    // Đảm bảo $user là dữ liệu mới nhất (dùng cho lần tải trang đầu tiên và sau khi POST thất bại)
-    $user = $this->model->layThongTin($_SESSION['user']['id']); 
 
-    require __DIR__ . '/../Views/taikhoan/suathongtin.php';
-}
-
-    /** 🔐 Đổi mật khẩu (Cho người dùng đã đăng nhập) */
+    /** 🔐 Đổi mật khẩu */
     public function doiMatKhau(): void
     {
         $this->checkUser();
@@ -343,360 +197,5 @@ public function suaThongTin(): void
         }
 
         include __DIR__ . '/../Views/taikhoan/doimatkhau.php';
-    }
-
-
-    // --- CHỨC NĂNG QUÊN MẬT KHẨU (2 BƯỚC) ---
-
-    /** 🔑 Quên mật khẩu (Bước 1: Nhận Email và Gửi Token) */
-    public function quenMatKhau(): void
-    {
-        $error = $success = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = trim($_POST['email'] ?? '');
-
-            // 1. Kiểm tra email có tồn tại không
-            $user = $this->model->layThongTinByEmail($email);
-
-            if (!$user) {
-                $error = "❌ Email không tồn tại trong hệ thống!";
-            } elseif ((int) ($user['trangthai'] ?? 0) !== 1) {
-                $error = "❌ Tài khoản chưa được kích hoạt hoặc đã bị khóa!";
-            } else {
-                // 2. Tạo và lưu Token đặt lại mật khẩu vào CSDL
-                $token = $this->model->taoTokenKhoiPhuc($email);
-
-                if ($token) {
-
-                    // 3. Gửi email
-                    // Đã sửa lỗi đường dẫn:
-                    require_once __DIR__ . '/../Views/gmail.php';
-
-                    // Đã sửa lỗi link tuyệt đối:
-                    $link = $this->domain . $this->baseUrl . "?action=datlaimatkhau&token=" . $token;
-                    $subject = "Đặt lại mật khẩu của bạn";
-                    $content = "
-                        <h3>Xin chào {$user['hoten']}</h3>
-                        <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng nhấn vào liên kết dưới đây để tiếp tục:</p>
-                        <a href='{$link}' target='_blank' style='display: inline-block; padding: 10px 20px; background-color: #f53d2d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>👉 Đặt lại mật khẩu (Liên kết hết hạn sau 30 phút)</a>
-                        <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-                    ";
-
-                    // *** ĐIỂM SỬA CHÍNH: Thêm \ để gọi hàm Global ***
-                    // *** ĐIỂM SỬA CHÍNH: Thêm \ để gọi hàm Global ***
-                    if (\guiEmail($email, $subject, $content)) { // <--- CẦN THÊM \ VÀO TRƯỚC guiEmail
-                        $success = "✅ Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư của bạn.";
-
-                    } else {
-                        $error = "❌ Lỗi khi gửi email xác nhận. Vui lòng thử lại!";
-                    }
-
-                } else {
-                    $error = "❌ Lỗi hệ thống khi tạo token. Vui lòng thử lại!";
-                }
-            }
-        }
-
-        require __DIR__ . '/../Views/taikhoan/quenmatkhau.php'; // View chỉ có ô Email
-    }
-
-    /** 🔐 Đặt lại mật khẩu (Bước 2: Nhận Token và Xử lý Form) */
-    public function datLaiMatKhau(): void
-    {
-        $token = $_GET['token'] ?? '';
-        $error = '';
-
-        // 1. Kiểm tra token có hợp lệ không (Model tự kiểm tra thời hạn)
-        $tokenData = $this->model->kiemTraTokenKhoiPhuc($token);
-
-        // TokenData trả về FALSE hoặc NULL nếu token không tồn tại, hết hạn, hoặc không khớp
-        if (!$tokenData) {
-            $error = "❌ Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!";
-            // View loi.php sẽ giúp thông báo lỗi chung
-            require __DIR__ . '/../Views/taikhoan/loi.php';
-            return;
-        }
-
-        // Token hợp lệ, giờ xử lý POST form đặt mật khẩu mới
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $matkhauMoi = $_POST['matkhauMoi'] ?? '';
-            $nhapLai = $_POST['nhaplai'] ?? '';
-
-            if ($matkhauMoi !== $nhapLai) {
-                $error = "⚠️ Mật khẩu nhập lại không khớp!";
-            } elseif (strlen($matkhauMoi) < 6) {
-                $error = "⚠️ Mật khẩu mới phải có ít nhất 6 ký tự!";
-            } else {
-                // 2. Cập nhật mật khẩu và xóa token
-                if ($this->model->datLaiMatKhau($token, $matkhauMoi)) {
-
-                    echo "<script>
-                            alert('✅ Đặt lại mật khẩu thành công! Hãy đăng nhập.');
-                            window.location.href = '{$this->baseUrl}?action=dangnhap';
-                          </script>";
-                    exit;
-                } else {
-                    $error = "❌ Lỗi khi cập nhật mật khẩu!";
-                }
-            }
-        }
-
-        // Hiển thị form đặt mật khẩu mới (chỉ khi token hợp lệ)
-        require __DIR__ . '/../Views/taikhoan/datlaimatkhau.php';
-    }
-
-    // --- CHỨC NĂNG ĐĂNG KÝ VÀ XÁC THỰC ---
-
-    /** ✅ Đăng ký tài khoản + gửi email xác nhận */
-    public function dangKy(): void
-    {
-        $error = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'hoten' => $_POST['hoten'] ?? '',
-                'email' => $_POST['email'] ?? '',
-                'matkhau' => $_POST['matkhau'] ?? '',
-                'dienthoai' => $_POST['dienthoai'] ?? '',
-                'diachi' => $_POST['diachi'] ?? '',
-                'ngaysinh' => $_POST['ngaysinh'] ?? '',
-                'gioitinh' => $_POST['gioitinh'] ?? ''
-            ];
-
-            $token = $this->model->dangKy($data); // Model trả về token hoặc thông báo lỗi
-
-            if ($token === "duplicate") {
-                $error = "Email đã được sử dụng!";
-            } elseif (str_starts_with($token, "error")) {
-                $error = "Lỗi khi lưu tài khoản!";
-            } else {
-                // 📧 Gửi email xác nhận
-                // Đã sửa lỗi đường dẫn:
-                require_once __DIR__ . '/../Views/gmail.php';
-
-                $link = $this->domain . $this->baseUrl . "?action=verify&token=" . $token;
-                $subject = "Xác nhận tài khoản của bạn";
-                $content = "
-                    <h3>Xin chào {$data['hoten']}</h3>
-                    <p>Vui lòng nhấn vào liên kết bên dưới để kích hoạt tài khoản:</p>
-                    <a href='{$link}' target='_blank'>👉 Kích hoạt tài khoản</a>
-                ";
-
-                // Đã sửa lỗi Namespace:
-                if (\guiEmail($data['email'], $subject, $content)) {
-                    echo "<script>
-                        alert('✅ Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.');
-                        window.location.href='{$this->baseUrl}?action=dangnhap';
-                    </script>";
-                    exit;
-                } else {
-                    $error = "❌ Đăng ký thành công nhưng không gửi được email!";
-                }
-            }
-        }
-
-        include __DIR__ . '/../Views/taikhoan/dangky.php';
-    }
-
-    /** 📧 Xác thực tài khoản qua email (kích hoạt tài khoản) */
-    public function verify()
-    { // Đổi tên hàm thành verify để phù hợp với action
-        $this->xacThucEmail();
-    }
-
-    private function xacThucEmail()
-    {
-        if (!isset($_GET['token'])) {
-            echo "<script>alert('Liên kết không hợp lệ!'); window.location.href='{$this->baseUrl}';</script>";
-            exit;
-        }
-
-        $token = $_GET['token'];
-        $thanhCong = $this->model->xacThucEmail($token);
-
-        if ($thanhCong) {
-            echo "<script>
-                alert('✅ Tài khoản của bạn đã được kích hoạt thành công! Hãy đăng nhập.');
-                window.location.href = '{$this->baseUrl}?action=dangnhap';
-              </script>";
-        } else {
-            echo "<script>
-                alert('❌ Liên kết kích hoạt không hợp lệ hoặc đã hết hạn!');
-                window.location.href = '{$this->baseUrl}';
-              </script>";
-        }
-=======
-    public function hoSo()
-    {
-        // Kiểm tra đăng nhập
-        if (!isset($_SESSION['user'])) {
-            $_SESSION['redirect_url'] = 'hoso';
-            header("Location: index.php?action=dangnhap");
-            exit;
-        }
-
-        // Lấy dữ liệu người dùng từ session
-        $user = $_SESSION['user'];
-
-        // Gọi view và truyền biến $user
-        require_once __DIR__ . '/../Views/taikhoan/hoso.php';
-    }
-
-    /** ✏️ Sửa thông tin cá nhân */
-    public function suaThongTin()
-    {
-        if (!isset($_SESSION['user'])) {
-            header("Location: index.php?action=dangnhap");
-            exit;
-        }
-
-        $user = $_SESSION['user'];
-        $error = '';
-        $success = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'id' => $user['id'],
-                'hoten' => trim($_POST['hoten'] ?? ''),
-                'gioitinh' => $_POST['gioitinh'] ?? '',
-                'ngaysinh' => $_POST['ngaysinh'] ?? null,
-                'dienthoai' => trim($_POST['dienthoai'] ?? ''),
-                'diachi' => trim($_POST['diachi'] ?? ''),
-                'avatar' => $user['avatar'] ?? null
-            ];
-
-            // Validate
-            if (empty($data['hoten'])) {
-                $error = "Vui lòng nhập họ tên!";
-            } else {
-                // Xử lý upload avatar
-                if (!empty($_FILES['avatar']['name'])) {
-                    $fileTmp = $_FILES['avatar']['tmp_name'];
-                    $fileName = time() . "_" . basename($_FILES['avatar']['name']);
-                    $uploadDir = __DIR__ . '/../../public/uploads/';
-
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-
-                    $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-
-                    if (in_array($fileExt, $allowed)) {
-                        if (move_uploaded_file($fileTmp, $uploadDir . $fileName)) {
-                            $data['avatar'] = 'uploads/' . $fileName;
-                        } else {
-                            $error = "Lỗi khi upload ảnh!";
-                        }
-                    } else {
-                        $error = "Chỉ chấp nhận file ảnh JPG, PNG, GIF!";
-                    }
-                }
-
-                if (empty($error)) {
-                    if ($this->model->capNhat($data)) {
-                        $_SESSION['user'] = $this->model->layThongTin($user['id']);
-                        $success = "Cập nhật thông tin thành công!";
-                    } else {
-                        $error = "Cập nhật thông tin thất bại!";
-                    }
-                }
-            }
-        }
-
-        require_once __DIR__ . '/../Views/taikhoan/suathongtin.php';
-    }
-
-    /** 🔐 Đổi mật khẩu */
-    public function doiMatKhau()
-    {
-        if (!isset($_SESSION['user'])) {
-            header("Location: index.php?action=dangnhap");
-            exit;
-        }
-
-        $user = $_SESSION['user'];
-        $error = '';
-        $success = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $matkhaucu = $_POST['matkhaucu'] ?? '';
-            $matkhaumoi = $_POST['matkhaumoi'] ?? '';
-            $nhaplai = $_POST['nhaplai'] ?? '';
-
-            // Kiểm tra mật khẩu cũ
-            if (!password_verify($matkhaucu, $user['matkhau'])) {
-                $error = "❌ Mật khẩu cũ không đúng!";
-            } elseif (empty($matkhaumoi)) {
-                $error = "⚠️ Vui lòng nhập mật khẩu mới!";
-            } elseif ($matkhaumoi !== $nhaplai) {
-                $error = "⚠️ Mật khẩu nhập lại không khớp!";
-            } else {
-                // ✅ Gọi model để cập nhật
-                if ($this->model->doiMatKhau($user['id'], $matkhaumoi)) {
-                    // Cập nhật lại session user mới nhất
-                    $_SESSION['user'] = $this->model->layThongTin($user['id']);
-                    $success = "✅ Đổi mật khẩu thành công!";
-                } else {
-                    $error = "❌ Đổi mật khẩu thất bại!";
-                }
-            }
-        }
-
-        require_once __DIR__ . '/../Views/taikhoan/doimatkhau.php';
-    }
-
-    /** 🔑 Quên mật khẩu */
-    public function quenMatKhau()
-    {
-        // Nếu đã đăng nhập, chuyển về trang chủ
-        if (isset($_SESSION['user'])) {
-            header("Location: index.php?action=trangchu");
-            exit();
-        }
-
-        $error = '';
-        $success = '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'] ?? '';
-            $matkhauMoi = $_POST['matkhaumoi'] ?? '';
-            $nhaplai = $_POST['nhaplai'] ?? '';
-
-            if (empty($email) || empty($matkhauMoi) || empty($nhaplai)) {
-                $error = "⚠️ Vui lòng nhập đầy đủ thông tin.";
-            } elseif ($matkhauMoi !== $nhaplai) {
-                $error = "⚠️ Mật khẩu nhập lại không khớp!";
-            } else {
-                // ✅ Gọi model và xử lý
-                if ($this->model->quenMatKhau($email, $matkhauMoi)) {
-                    $success = "✅ Đặt lại mật khẩu thành công! Bạn có thể đăng nhập lại.";
-                } else {
-                    $error = "❌ Không tìm thấy tài khoản với email này!";
-                }
-            }
-        }
-
-        require_once __DIR__ . '/../Views/taikhoan/quenmatkhau.php';
-    }
-
-    /** ✅ Xác nhận tài khoản qua email */
-    public function xacNhanTaiKhoan()
-    {
-        $token = $_GET['token'] ?? null;
-        $result = '';
-
-        if (!$token) {
-            $result = 'missing'; // Không có token
-        } elseif ($this->model->xacThucEmail($token)) {
-            $result = 'success'; // Xác thực thành công
-        } else {
-            $result = 'invalid'; // Token sai hoặc đã dùng
-        }
-
-        // 👉 Gọi giao diện riêng
-        require_once __DIR__ . '/../Views/taikhoan/xacnhan_email.php';
->>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
     }
 }

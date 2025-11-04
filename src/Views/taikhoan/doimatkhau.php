@@ -2,7 +2,10 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<<<<<<< HEAD
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+=======
+>>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
 <title>Đổi mật khẩu</title>
 <style>
   body {
@@ -40,7 +43,11 @@
     border-radius: 8px;
     font-size: 15px;
     outline: none;
+<<<<<<< HEAD
     transition: border-color 0.2s, box-shadow 0.2s;
+=======
+    transition: border-color 0.2s;
+>>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
   }
 
   input:focus {
@@ -87,14 +94,22 @@
   .msg.success { background: #e8f9f1; color: #1e7e34; border: 1px solid #b2f0cd; }
   .msg.error { background: #fdecea; color: #a71d2a; border: 1px solid #f5c2c7; }
   .msg.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+<<<<<<< HEAD
+=======
+
+>>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
 </style>
 </head>
 <body>
   <div class="form-container">
     <h2>🔒 Đổi mật khẩu</h2>
+<<<<<<< HEAD
 
     <!-- ✅ Form gửi lại chính trang -->
     <form method="post" action="" autocomplete="off">
+=======
+    <form method="post">
+>>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
       <input type="password" name="matkhaucu" placeholder="Nhập mật khẩu cũ" required>
       <input type="password" name="matkhaumoi" placeholder="Nhập mật khẩu mới" required>
       <input type="password" name="nhaplai" placeholder="Nhập lại mật khẩu mới" required>
@@ -103,7 +118,10 @@
       <a href="index.php?action=hoso" class="back-link">← Quay lại hồ sơ</a>
     </form>
 
+<<<<<<< HEAD
     <!-- ✅ Hiển thị thông báo -->
+=======
+>>>>>>> f8f5135baf5eda4667bd59475c0c753a61c16618
     <?php if (!empty($message)): ?>
       <?php
         $class = 'msg';
